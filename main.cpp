@@ -54,19 +54,18 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		if (GetMouse(0).bPressed) {
+		if (GetMouse(0).bReleased) {
 			vertices.emplace_back(Vertex(olc::Vector2(GetMouseX(), GetMouseY()), 0));
 			FillCircle(GetMouseX(), GetMouseY(), 5.0f, olc::YELLOW);
-		}
-		else if (GetMouse(1).bPressed) {
 			std::sort(vertices.begin(), vertices.end(), compareByPosition);
 			vertices[0].polarAngle = -99;
 			CalculatePolarAngles(vertices[0]);
 			std::sort(vertices.begin(), vertices.end(), compareByPolarAngle);
-			for (int i = 0; i < vertices.size(); ++i) {
-				DrawString(vertices[i].position.x - 20, vertices[i].position.y - 5, std::to_string(i), olc::RED);
-			}
+			RedrawArea();
 			GrahamScan();
+		}
+		else if (GetMouse(1).bPressed) {
+			
 			//for (int i = 0; i < vertices.size() - 1; ++i) {
 			//	DrawLine(vertices[i].position.x, vertices[i].position.y, vertices[i + 1].position.x, vertices[i + 1].position.y, olc::WHITE);
 			//	DrawString(vertices[i].position.x + 5, vertices[i].position.y + 5, std::to_string(vertices[i].polarAngle));
@@ -81,6 +80,7 @@ private:
 
 		if (vertices.size() < 3) {
 			std::cout << "Too few vertices." << std::endl;
+			return;
 		}
 		std::stack<Vertex> currentPath;
 		Vertex parentBegin, parentEnd;
@@ -89,7 +89,7 @@ private:
 		currentPath.push(vertices[1]);	
 		currentPath.push(vertices[2]);
 
-		parentBegin = vertices[0];
+		parentBegin = vertices[1];
 		parentEnd = vertices[2];
 		
 		int verticesIndex = 3;
@@ -103,11 +103,10 @@ private:
 				currentPath.push(vertices[verticesIndex]);
 				parentEnd = currentPath.top();
 			}
-			else if (dir < 0) {
+			else {
 				currentPath.pop();
 				do {
 					parentEnd = currentPath.top();
-					//std::cout<< verticesIndex <<std::endl;
 					currentPath.pop();
 					parentBegin = currentPath.top();
 				} while (CalculateRelativeAngle(parentBegin, parentEnd, vertices[verticesIndex]) < 0);
@@ -127,11 +126,12 @@ private:
 		while (currentPath.size() > 0) {
 			Vertex v = currentPath.top();
 			DrawLine(endV.position.x, endV.position.y, v.position.x, v.position.y, olc::YELLOW);
+			DrawString(v.position.x + 10, v.position.y + 5, std::to_string(i));
 			endV = v;
 			currentPath.pop();
-			DrawString(v.position.x + 10, v.position.y + 5, std::to_string(i));
 			i++;
 		}
+		std::cout << "curretPath stack size: " << i << std::endl;
 		DrawLine(endV.position.x, endV.position.y, start.position.x, start.position.y, olc::YELLOW);
 	}
 
@@ -140,7 +140,7 @@ private:
 			- (checkEnd.position.y - parentBegin.position.y) * (parentEnd.position.x - parentBegin.position.x));
 	}
 	
-		void CalculatePolarAngles(const Vertex &p0) {
+	void CalculatePolarAngles(const Vertex &p0) {
 		if (vertices.size() == 0) return;
 		float dx, dy;
 		float angle;
@@ -155,14 +155,26 @@ private:
 		}
 	}
 
+	void RedrawArea() {
+		Clear(olc::BLACK);
+		int i = 0;
+
+		for (auto v : vertices) {
+			FillCircle(v.position.x, v.position.y, 5.0f, olc::YELLOW);
+			DrawString(v.position.x - 20, v.position.y - 5, std::to_string(i), olc::RED);
+			i++;
+		}
+	}
+
 	
+
 };
 
 int main(int argc, char* argv[]) {
 
 	Application myApplication;
 
-	if (myApplication.Construct(800, 800, 1, 1)) {
+	if (myApplication.Construct(1500, 800, 1, 1)) {
 		myApplication.Start();
 	}
 
