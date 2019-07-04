@@ -100,8 +100,6 @@ private:
 
 			if (dir > 0) {
 				parentBegin = currentPath.top();
-				currentPath.push(vertices[verticesIndex]);
-				parentEnd = currentPath.top();
 			}
 			else {
 				currentPath.pop();
@@ -113,9 +111,9 @@ private:
 				currentPath.push(parentBegin);
 				currentPath.push(parentEnd);
 				parentBegin = currentPath.top();
-				currentPath.push(vertices[verticesIndex]);
-				parentEnd = currentPath.top();
 			}
+			currentPath.push(vertices[verticesIndex]);
+			parentEnd = currentPath.top();
 			verticesIndex++;
 		}
 
